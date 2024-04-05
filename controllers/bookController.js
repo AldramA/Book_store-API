@@ -7,7 +7,6 @@ const {
 const multer = require("multer");
 const path = require("path");
 
-
 const getAllBooks = asyncHandler(async (req, res) => {
   const { minPrice, maxPrice, sortBy, category } = req.query;
   const query = {};
@@ -84,23 +83,48 @@ const updateBook = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).send(error.details[0].message);
   }
-  const bookUpdated = await Book.findByIdAndUpdate(
-    req.params.id,
-    {
-      $set: {
-        title: req.body.title,
-        author: req.body.author,
-        price: req.body.price,
-        description: req.body.description,
-        cover: req.body.cover,
-      },
+
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const imagespath = path.join(__dirname, "../images/bookCover");
+      cb(null, imagespath);
     },
-    { new: true }
-  );
-  if (!bookUpdated) {
-    return res.status(404).send("The book with the given ID was not found");
-  }
-  res.status(200).json(bookUpdated);
+    filename: (req, file, cb) => {
+      cb(
+        null,
+        new Date().toISOString().replace(/:/g, "-") +
+          path.extname(file.originalname)
+      );
+    },
+  });
+
+  const upload = multer({ storage: storage }).single("image");
+
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Error uploading file" });
+    }
+    const bookUpdated = await Book.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          title: req.body.title,
+          author: req.body.author,
+          price: req.body.price,
+          description: req.body.description,
+          cover: req.body.cover,
+        },
+      },
+      { new: true }
+    );
+    if (!bookUpdated) {
+      return res.status(404).send("The book with the given ID was not found");
+    }
+    if (req.file) {
+      bookUpdated.image = req.file.path;
+    }
+    res.status(200).json(bookUpdated);
+  });
 });
 
 const deleteBook = asyncHandler(async (req, res) => {
