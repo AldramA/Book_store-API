@@ -4,6 +4,9 @@ const {
   validatCreateBook,
   validatUpdateBook,
 } = require("../models/book");
+const multer = require("multer");
+const path = require("path");
+
 
 const getAllBooks = asyncHandler(async (req, res) => {
   const { minPrice, maxPrice, sortBy, category } = req.query;
@@ -12,7 +15,7 @@ const getAllBooks = asyncHandler(async (req, res) => {
     query.price = { $gte: minPrice, $lte: maxPrice };
   }
   if (category) {
-    query.category = category; 
+    query.category = category;
   }
   let books;
   if (sortBy) {
@@ -36,18 +39,45 @@ const createBook = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).send(error.details[0].message);
   }
-  const book = new Book({
-    title: req.body.title,
-    author: req.body.author,
-    price: req.body.price,
-    description: req.body.description,
-    cover: req.body.cover,
-    category: req.body.category,
-  });
-  const result = await book.save();
-  res.status(201).json(result);
-});
 
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const imagespath = path.join(__dirname, "../images/bookCover");
+      cb(null, imagespath);
+    },
+    filename: (req, file, cb) => {
+      cb(
+        null,
+        new Date().toISOString().replace(/:/g, "-") +
+          path.extname(file.originalname)
+      );
+    },
+  });
+
+  const upload = multer({ storage: storage }).single("image");
+
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Error uploading file" });
+    }
+
+    let createBookFields = {
+      title: req.body.title,
+      author: req.body.author,
+      price: req.body.price,
+      description: req.body.description,
+      cover: req.body.cover,
+      category: req.body.category,
+    };
+    if (req.file) {
+      createBookFields.image = req.file.path;
+    }
+
+    const newBook = new Book(createBookFields);
+    const savedBook = await newBook.save();
+    res.status(201).json(savedBook);
+  });
+});
 
 const updateBook = asyncHandler(async (req, res) => {
   const { error } = validatUpdateBook(req.body);

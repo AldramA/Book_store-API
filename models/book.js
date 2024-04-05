@@ -36,6 +36,10 @@ const bookSchema = new mongoose.Schema(
       enum: ["soft", "hard"],
       default: "soft",
     },
+    image: {
+      type: String,
+      default: "no-image.jpg",
+    },
   },
   { timestamps: true }
 );
@@ -43,11 +47,11 @@ const bookSchema = new mongoose.Schema(
 
 const validatCreateBook = (book) => {
   const schema = Joi.object({
-    title: Joi.string().trim().min(3).max(255).required(),
-    author: Joi.string().trim().min(3).max(60).required(),
-    price: Joi.number().required(),
-    category: Joi.string().trim().min(3).max(60).required(), 
-    description: Joi.string().min(3).required(), 
+    title: Joi.string().trim().min(3).max(255),
+    author: Joi.string().trim().min(3).max(60),
+    price: Joi.number(),
+    category: Joi.string().trim().min(3).max(60), 
+    description: Joi.string().min(3), 
     cover: Joi.string().valid("soft", "hard"),
   });
   return schema.validate(book);

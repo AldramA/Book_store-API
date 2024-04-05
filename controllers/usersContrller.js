@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const asyncHandler = require("express-async-handler");
 const { User, validateUpdateUser } = require("../models/user");
+const multer = require("multer");
+const path = require("path");
 
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find().select("-password");
@@ -25,22 +27,48 @@ const updateUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: error.details[0].message });
   }
 
-  if (req.body.password) {
-    const salt = await bcrypt.genSalt(10);
-    req.body.password = await bcrypt.hash(req.body.password, salt);
-  }
-  const updateUser = await User.findByIdAndUpdate(
-    req.params.id,
-    {
-      $set: {
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password,
-      },
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const imagespath = path.join(__dirname, "../images/userImages");
+      cb(null, imagespath);
     },
-    { new: true }
-  ).select("-password");
-  res.status(200).json(updateUser);
+    filename: (req, file, cb) => {
+      cb(
+        null,
+        new Date().toISOString().replace(/:/g, "-") +
+          path.extname(file.originalname)
+      );
+    },
+  });
+  const upload = multer({ storage: storage }).single("image");
+
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Error uploading file" });
+    }
+    
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      req.body.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    let updateUserFields = {
+      name: req.body.name,
+      email: req.body.email,
+    };
+
+    if (req.file) {
+      updateUserFields.image = req.file.path;
+    }
+    
+    const updateUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateUserFields },
+      { new: true }
+    ).select("-password");
+    
+    res.status(200).json(updateUser);
+  });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {

@@ -22,7 +22,6 @@ app.use("/api/v1/books", require("./routes/books"));
 app.use("/api/v1/authors", require("./routes/authors"));
 app.use("/api/v1/auth", require("./routes/auth"));
 app.use("/api/v1/users", require("./routes/users"));
-app.use("/api/v1/uploads", require("./routes/uploads"));
 app.use("/api/v1/password", require("./routes/reset_pass"));
 
 app.use(notFound);

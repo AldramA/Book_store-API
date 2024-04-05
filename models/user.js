@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    image: {
+      type: String,
+      default: "default.jpg",
+    },
   },
   {
     timestamps: true,
@@ -65,7 +69,7 @@ function validateUpdateUser(user) {
   const schema = joi.object({
     name: joi.string().trim().min(3).max(100),
     email: joi.string().trim().min(6).max(100).email(),
-    password: passwordComplexity().required(),
+    password: passwordComplexity(),
   });
 
   return schema.validate(user);
