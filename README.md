@@ -10,8 +10,9 @@ This project is a Node.js application utilizing MongoDB for database operations.
 ## API Endpoints
 
 ### Authentication
-- `/api/v1/auth/register`: Register a new user.
-- `/api/v1/auth/login`: Login with registered credentials.
+- `POST /api/v1/auth/register`: Register a new user.
+- `POST /api/v1/auth/login`: Login with registered credentials.
+- `PUT /api/v1/users/:id` : Update user by ID.
 
 ### Book Operations
 - `GET /api/v1/books`: Retrieve all books.
@@ -19,6 +20,22 @@ This project is a Node.js application utilizing MongoDB for database operations.
 - `POST /api/v1/books`: Add a new book.
 - `PUT /api/v1/books/:id`: Update a book by ID.
 - `DELETE /api/v1/books/:id`: Delete a book by ID.
+
+
+### Author Operations
+- `GET /api/v1/authors?page=?`: Retrieve Authors books.
+- `GET /api/v1/authors/:id`: Retrieve a specific book by ID.
+- `POST /api/v1/authors`: Add a new Author.
+- `PUT /api/v1/authors/:id`: Update a author by ID.
+- `DELETE /api/v1/authors/:id`: Delete a book by ID.
+
+### User Operations
+- `GET /api/v1/users/`: Retrieve all users.
+- `GET /api/v1/users/:id`: Retrieve a specific user by ID.
+
+### Reset Passwored
+- `POST /api/v1/password/forgot`: Get Email to Reset Passwored.
+- `POST /api/v1/auth/login`: New Passwored.
 
 ### Security Measures
 - JWT (JSON Web Tokens) for authentication.
